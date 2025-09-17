@@ -1,14 +1,71 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod ssh;
+use ssh::SshClient;
+
+use std::sync::Mutex;
+use tauri::State;
+
+struct SshState {
+    session: Mutex<Option<SshClient>>,
+}
+
+impl SshState {
+    fn new() -> Self {
+        Self {
+            session: Mutex::new(None),
+        }
+    }
+}
+
+// 先にSSH接続だけを確立する
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn ssh_connect(state: State<SshState>, username: String, host: String, port: u16) -> String {
+    let mut client = SshClient::new(username, host, port);
+    match client.connect() {
+        Ok(()) => {
+            let mut guard = state.session.lock().unwrap();
+            *guard = Some(client);
+            "SSH connected".into()
+        }
+        Err(e) => format!("Connect failed: {e}"),
+    }
+}
+
+// 接続を破棄する
+#[tauri::command]
+fn ssh_disconnect(state: State<SshState>) -> String {
+    let mut guard = state.session.lock().unwrap();
+    let existed = guard.is_some();
+    *guard = None;
+    if existed {
+        "SSH disconnected".into()
+    } else {
+        "No active SSH".into()
+    }
+}
+
+// 学習用: 既存のTauriコマンド。保持済みセッションでコマンド実行
+#[tauri::command]
+fn ssh_exec(state: State<SshState>, command: &str) -> String {
+    let guard = state.session.lock().unwrap();
+    let Some(client) = guard.as_ref() else {
+        return "Not connected. Call ssh_connect first.".into();
+    };
+    match client.exec(command) {
+        Ok(output) => format!("Command output:\n{output}"),
+        Err(e) => format!("Exec failed: {e}"),
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .manage(SshState::new())
+        .invoke_handler(tauri::generate_handler![
+            ssh_connect,
+            ssh_disconnect,
+            ssh_exec
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

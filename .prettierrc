@@ -1,0 +1,17 @@
+{
+    "printWidth": 100,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "plugins": ["@trivago/prettier-plugin-sort-imports"],
+    "endOfLine": "auto",
+    "importOrder": [
+        "^react(.*)",
+        "^@mui/(?!icons)(.*)$",
+        "^@mui/icons(.*)$",
+        "^@tauri-apps(.*)$",
+        "^@(.*)$",
+        "^[./](?!.*\\.(css|scss|sass)$)",
+        "<THIRD_PARTY_MODULES>",
+        "\\.(css|scss|sass)$"
+    ]
+}
