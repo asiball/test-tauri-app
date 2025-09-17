@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "lint": "eslint ./src --ext .ts,.tsx",
+    "lint:fix": "eslint ./src --ext .ts,.tsx --fix",
+    "format": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",

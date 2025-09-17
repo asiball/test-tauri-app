@@ -13,8 +13,10 @@
     "windows": [
       {
         "title": "app",
-        "width": 800,
-        "height": 600
+        "width": 1024,
+        "height": 600,
+        "resizable": false,
+        "fullscreen": false
       }
     ],
     "security": {

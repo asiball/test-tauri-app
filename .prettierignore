@@ -2,6 +2,7 @@ node_modules/
 dist/
 build/
 release/
+src-tauri/
 public/lib/
 *.min.js
 *.bundle.js
