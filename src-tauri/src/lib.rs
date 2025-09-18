@@ -18,8 +18,14 @@ impl SshState {
 
 // 先にSSH接続だけを確立する
 #[tauri::command]
-fn ssh_connect(state: State<SshState>, username: String, host: String, port: u16) -> String {
-    let mut client = SshClient::new(username, host, port);
+fn ssh_connect(
+    state: State<SshState>,
+    username: String,
+    password: String,
+    host: String,
+    port: u16,
+) -> String {
+    let mut client = SshClient::new(username, password, host, port);
     match client.connect() {
         Ok(()) => {
             let mut guard = state.session.lock().unwrap();

@@ -14,6 +14,7 @@ interface Props {
 interface Config {
   host?: string;
   user?: string;
+  pass?: string;
   port?: number;
 }
 
@@ -21,11 +22,13 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
   const FALLBACK: Required<Config> = {
     host: "",
     user: "",
+    pass: "",
     port: 22,
   };
 
   const [host, setHost] = useState(FALLBACK.host);
   const [user, setUser] = useState(FALLBACK.user);
+  const [pass, setPass] = useState(FALLBACK.pass);
   const [port, setPort] = useState(FALLBACK.port);
   const [busy, setBusy] = useState(false);
 
@@ -54,7 +57,12 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
   const connect = async () => {
     setBusy(true);
     try {
-      const res = await invoke<string>("ssh_connect", { username: user, host, port });
+      const res = await invoke<string>("ssh_connect", {
+        username: user,
+        password: pass,
+        host,
+        port,
+      });
       onLog(res);
       onConnectedChange(res.toLowerCase().includes("connected"));
     } catch (e: unknown) {
@@ -92,6 +100,12 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
             onChange={(e) => setPort(Number(e.target.value))}
           />
           <TextField label="User" value={user} onChange={(e) => setUser(e.target.value)} />
+          <TextField
+            label="Password"
+            type="password"
+            value={pass}
+            onChange={(e) => setPass(e.target.value)}
+          />
         </Box>
         <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
           <Button variant="contained" onClick={connect} disabled={busy}>

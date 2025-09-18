@@ -4,15 +4,22 @@ use std::net::TcpStream;
 
 pub struct SshClient {
     username: String,
+    password: String,
     host: String,
     port: u16,
     sess: Option<Session>,
 }
 
 impl SshClient {
-    pub fn new<U: Into<String>, H: Into<String>>(username: U, host: H, port: u16) -> Self {
+    pub fn new<U: Into<String>, H: Into<String>>(
+        username: U,
+        password: String,
+        host: H,
+        port: u16,
+    ) -> Self {
         SshClient {
             username: username.into(),
+            password,
             host: host.into(),
             port,
             sess: None,
@@ -26,7 +33,7 @@ impl SshClient {
 
         session.set_tcp_stream(tcp);
         session.handshake()?;
-        session.userauth_agent(&self.username)?;
+        session.userauth_password(&self.username, &self.password)?;
 
         self.sess = Some(session);
         Ok(())
