@@ -56,36 +56,38 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
 
   const connect = async () => {
     setBusy(true);
-    try {
-      const res = await invoke<string>("ssh_connect", {
-        username: user,
-        password: pass,
-        host,
-        port,
+    invoke<string>("ssh_connect", {
+      username: user,
+      password: pass,
+      host,
+      port,
+    })
+      .then((res) => {
+        onLog(res);
+        onConnectedChange(true);
+      })
+      .catch((e: Error) => {
+        onLog(e.message);
+        onConnectedChange(false);
+      })
+      .finally(() => {
+        setBusy(false);
       });
-      onLog(res);
-      onConnectedChange(res.toLowerCase().includes("connected"));
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      onLog(msg);
-      onConnectedChange(false);
-    } finally {
-      setBusy(false);
-    }
   };
 
   const disconnect = async () => {
     setBusy(true);
-    try {
-      const res = await invoke<string>("ssh_disconnect");
-      onLog(res);
-      onConnectedChange(false);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      onLog(msg);
-    } finally {
-      setBusy(false);
-    }
+    invoke<string>("ssh_disconnect")
+      .then((res) => {
+        onLog(res);
+        onConnectedChange(false);
+      })
+      .catch((e: Error) => {
+        onLog(e.message);
+      })
+      .finally(() => {
+        setBusy(false);
+      });
   };
 
   return (
