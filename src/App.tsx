@@ -14,7 +14,7 @@ function App() {
       style={{ display: "grid", gap: 16, gridTemplateColumns: "auto 1fr" }}
     >
       <div style={{ display: "grid", gap: 16, width: 380 }}>
-        <ConnectPanel onLog={setOutput} onConnectedChange={setConnected} />
+        <ConnectPanel onLog={setOutput} isConnected={connected} onConnectedChange={setConnected} />
         <SendCommandCard setOutput={setOutput} isConnected={connected} />
       </div>
       <TerminalOutput log={output} height={480} />

@@ -3,11 +3,14 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import CircularProgress from "@mui/material/CircularProgress";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { invoke } from "@tauri-apps/api/core";
 
 interface Props {
   onLog: (msg: string) => void;
+  isConnected: boolean;
   onConnectedChange: (v: boolean) => void;
 }
 
@@ -18,7 +21,7 @@ interface Config {
   port?: number;
 }
 
-const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
+const ConnectPanel: React.FC<Props> = ({ onLog, isConnected, onConnectedChange }) => {
   const FALLBACK: Required<Config> = {
     host: "",
     user: "",
@@ -56,36 +59,38 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
 
   const connect = async () => {
     setBusy(true);
-    try {
-      const res = await invoke<string>("ssh_connect", {
-        username: user,
-        password: pass,
-        host,
-        port,
+    invoke<string>("ssh_connect", {
+      username: user,
+      password: pass,
+      host,
+      port,
+    })
+      .then((res) => {
+        onLog(res);
+        onConnectedChange(true);
+      })
+      .catch((e: Error) => {
+        onLog(e.message ?? "Connect error");
+        onConnectedChange(false);
+      })
+      .finally(() => {
+        setBusy(false);
       });
-      onLog(res);
-      onConnectedChange(res.toLowerCase().includes("connected"));
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      onLog(msg);
-      onConnectedChange(false);
-    } finally {
-      setBusy(false);
-    }
   };
 
   const disconnect = async () => {
     setBusy(true);
-    try {
-      const res = await invoke<string>("ssh_disconnect");
-      onLog(res);
-      onConnectedChange(false);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      onLog(msg);
-    } finally {
-      setBusy(false);
-    }
+    invoke<string>("ssh_disconnect")
+      .then((res) => {
+        onLog(res);
+        onConnectedChange(false);
+      })
+      .catch((e: Error) => {
+        onLog(e.message);
+      })
+      .finally(() => {
+        setBusy(false);
+      });
   };
 
   return (
@@ -108,10 +113,19 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
           />
         </Box>
         <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-          <Button variant="contained" onClick={connect} disabled={busy}>
-            Connect
+          <Button
+            variant={isConnected ? "outlined" : "contained"}
+            onClick={connect}
+            disabled={isConnected}
+            loading={busy}
+          >
+            {isConnected ? "Connected" : "Connect"}
           </Button>
-          <Button variant="outlined" onClick={disconnect} disabled={busy}>
+          <Button
+            variant={isConnected ? "contained" : "outlined"}
+            onClick={disconnect}
+            disabled={!isConnected}
+          >
             Disconnect
           </Button>
         </Box>
