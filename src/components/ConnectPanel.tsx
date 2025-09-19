@@ -10,6 +10,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 interface Props {
   onLog: (msg: string) => void;
+  isConnected: boolean;
   onConnectedChange: (v: boolean) => void;
 }
 
@@ -20,7 +21,7 @@ interface Config {
   port?: number;
 }
 
-const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
+const ConnectPanel: React.FC<Props> = ({ onLog, isConnected, onConnectedChange }) => {
   const FALLBACK: Required<Config> = {
     host: "",
     user: "",
@@ -33,7 +34,6 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
   const [pass, setPass] = useState(FALLBACK.pass);
   const [port, setPort] = useState(FALLBACK.port);
   const [busy, setBusy] = useState(false);
-  const [connected, setConnected] = useState(false);
 
   // ランタイムで public/config.local.json があれば読み込む（Git未管理）
   useEffect(() => {
@@ -70,12 +70,11 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
         onConnectedChange(true);
       })
       .catch((e: Error) => {
-        onLog(e.message);
+        onLog(e.message ?? "Connect error");
         onConnectedChange(false);
       })
       .finally(() => {
         setBusy(false);
-        setConnected(true);
       });
   };
 
@@ -91,7 +90,6 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
       })
       .finally(() => {
         setBusy(false);
-        setConnected(false);
       });
   };
 
@@ -116,17 +114,17 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
         </Box>
         <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
           <Button
-            variant={connected ? "outlined" : "contained"}
+            variant={isConnected ? "outlined" : "contained"}
             onClick={connect}
-            disabled={busy}
+            disabled={isConnected}
             loading={busy}
           >
-            {connected ? "Connected" : "Connect"}
+            {isConnected ? "Connected" : "Connect"}
           </Button>
           <Button
-            variant={connected ? "contained" : "outlined"}
+            variant={isConnected ? "contained" : "outlined"}
             onClick={disconnect}
-            disabled={busy}
+            disabled={!isConnected}
           >
             Disconnect
           </Button>
