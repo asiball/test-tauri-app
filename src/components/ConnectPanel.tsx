@@ -3,7 +3,9 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import CircularProgress from "@mui/material/CircularProgress";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { invoke } from "@tauri-apps/api/core";
 
 interface Props {
@@ -31,6 +33,7 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
   const [pass, setPass] = useState(FALLBACK.pass);
   const [port, setPort] = useState(FALLBACK.port);
   const [busy, setBusy] = useState(false);
+  const [connected, setConnected] = useState(false);
 
   // ランタイムで public/config.local.json があれば読み込む（Git未管理）
   useEffect(() => {
@@ -72,6 +75,7 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
       })
       .finally(() => {
         setBusy(false);
+        setConnected(true);
       });
   };
 
@@ -87,6 +91,7 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
       })
       .finally(() => {
         setBusy(false);
+        setConnected(false);
       });
   };
 
@@ -110,10 +115,19 @@ const ConnectPanel: React.FC<Props> = ({ onLog, onConnectedChange }) => {
           />
         </Box>
         <Box sx={{ mt: 2, display: "flex", gap: 1 }}>
-          <Button variant="contained" onClick={connect} disabled={busy}>
-            Connect
+          <Button
+            variant={connected ? "outlined" : "contained"}
+            onClick={connect}
+            disabled={busy}
+            loading={busy}
+          >
+            {connected ? "Connected" : "Connect"}
           </Button>
-          <Button variant="outlined" onClick={disconnect} disabled={busy}>
+          <Button
+            variant={connected ? "contained" : "outlined"}
+            onClick={disconnect}
+            disabled={busy}
+          >
             Disconnect
           </Button>
         </Box>
